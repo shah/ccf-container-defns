@@ -1,9 +1,9 @@
-local containerFacts = import "container.facts.json";
+local context = import "context.ccf-facts.json";
 
 {	
 	sambaSetup : {
-		userId: containerFacts.currentUser.id,
-		groupId: containerFacts.currentUser.groupId,
+		userId: context.currentUser.id,
+		groupId: context.currentUser.groupId,
 		timeZone: "EST5EDT",
 		serveNetBIOS: true,
 		recycle: false
@@ -11,16 +11,16 @@ local containerFacts = import "container.facts.json";
 	
 	sambaShares : [
 		{
-			shareName: "%(name)s_Home" % containerFacts.currentUser,
-			sharePathInContainer: "/%(name)s_Home" % containerFacts.currentUser,
-			sharePathInHost: containerFacts.currentUser.home,
+			shareName: "%(name)s_Home" % context.currentUser,
+			sharePathInContainer: "/%(name)s_Home" % context.currentUser,
+			sharePathInHost: context.currentUser.home,
 			browseable: "yes",
 			readOnly: "no",
 			guest: "no",
 			users: "admin",
 			admins: "admin",
 			usersThatCanWriteToROShare: "admin",
-			comment: "%(name)s Home" % containerFacts.currentUser,
+			comment: "%(name)s Home" % context.currentUser,
 		},
 	],
 }
