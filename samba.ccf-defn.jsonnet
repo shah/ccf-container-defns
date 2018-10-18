@@ -1,7 +1,8 @@
-local applianceConf = import "common.ccf-conf.jsonnet";
+local common = import "common.ccf-conf.jsonnet";
+local ccflib = import "ccf.libsonnet";
 local context = import "context.ccf-facts.json";
 local containerSecrets = import "samba.secrets.ccf-conf.jsonnet";
-local sambaConf = import "samba.ccf-conf.jsonnet";
+local containerConf = import "samba.ccf-conf.jsonnet";
 
 local command(cmd, params, repl) = [cmd, params % repl];
 
@@ -19,16 +20,16 @@ local command(cmd, params, repl) = [cmd, params % repl];
 				command: 
 					std.flattenArrays(
 						[command("-u", "%(userName)s;%(password)s;%(userId)d;%(groupName)s", x) for x in containerSecrets.sambaUsers] +
-						[command("-s", "%(shareName)s;%(sharePathInContainer)s;%(browseable)s;%(readOnly)s;%(guest)s;%(users)s;%(admins)s;%(usersThatCanWriteToROShare)s;%(comment)s", x) for x in sambaConf.sambaShares]
+						[command("-s", "%(shareName)s;%(sharePathInContainer)s;%(browseable)s;%(readOnly)s;%(guest)s;%(users)s;%(admins)s;%(usersThatCanWriteToROShare)s;%(comment)s", x) for x in containerConf.sambaShares]
 					),
 				volumes:
-					["%(sharePathInHost)s:%(sharePathInContainer)s" % x for x in sambaConf.sambaShares],
+					["%(sharePathInHost)s:%(sharePathInContainer)s" % x for x in containerConf.sambaShares],
 				environment: [
-					'USERID=' + sambaConf.sambaSetup.userId,
-					'GROUPID=' + sambaConf.sambaSetup.groupId,
-					'TZ=' + sambaConf.sambaSetup.timeZone,
-					'NMBD=' + sambaConf.sambaSetup.serveNetBIOS,
-					'RECYCLE=' + sambaConf.sambaSetup.recycle,
+					'USERID=' + containerConf.sambaSetup.userId,
+					'GROUPID=' + containerConf.sambaSetup.groupId,
+					'TZ=' + containerConf.sambaSetup.timeZone,
+					'NMBD=' + containerConf.sambaSetup.serveNetBIOS,
+					'RECYCLE=' + containerConf.sambaSetup.recycle,
 				],
 			}
 		},
@@ -36,11 +37,15 @@ local command(cmd, params, repl) = [cmd, params % repl];
 		networks: {
 			network: {
 				external: {
-					name: applianceConf.defaultDockerNetworkName
+					name: common.defaultDockerNetworkName
 				},
 			},
 		},
 	}),
 
-	"after_start.make-plugin.sh" : applianceConf.waitForContainerHealthStatus(context, 'healthy')
+	"after_start.make-plugin.sh" :
+		ccflib.bashSnippets.preamble(context) + 
+		ccflib.bashSnippets.waitForContainerHealthStatus(context, 'healthy') +
+		ccflib.bashSnippets.openHostFirewallPortNumber(context, 139) +
+		ccflib.bashSnippets.openHostFirewallPortNumber(context, 445),
 }
