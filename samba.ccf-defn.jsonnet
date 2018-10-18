@@ -1,5 +1,5 @@
 local applianceConf = import "common.ccf-conf.jsonnet";
-local containerFacts = import "container.facts.json";
+local context = import "context.ccf-facts.json";
 local containerSecrets = import "samba.secrets.ccf-conf.jsonnet";
 local sambaConf = import "samba.ccf-conf.jsonnet";
 
@@ -11,7 +11,7 @@ local command(cmd, params, repl) = [cmd, params % repl];
 
 		services: {
 			container: {
-				container_name: containerFacts.containerName,
+				container_name: context.containerName,
 				image: 'dperson/samba',
 				restart: 'always',
 				ports: ['139:139', '445:445'],
@@ -42,5 +42,5 @@ local command(cmd, params, repl) = [cmd, params % repl];
 		},
 	}),
 
-	"after_start.make-plugin.sh" : applianceConf.waitForContainerHealthStatus(containerFacts, 'healthy')
+	"after_start.make-plugin.sh" : applianceConf.waitForContainerHealthStatus(context, 'healthy')
 }

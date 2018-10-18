@@ -1,5 +1,5 @@
 local applianceConf = import "common.ccf-conf.jsonnet";
-local containerFacts = import "container.facts.json";
+local context = import "context.ccf-facts.json";
 
 {
 	"docker-compose.yml" : std.manifestYamlDoc({
@@ -7,7 +7,7 @@ local containerFacts = import "container.facts.json";
 
 		services: {
 			container: {
-				container_name: containerFacts.containerName,
+				container_name: context.containerName,
 				image: 'google/cadvisor:latest',
 				restart: 'always',
 				ports: ['8080:8080'],
@@ -22,10 +22,10 @@ local containerFacts = import "container.facts.json";
 				labels: {
 					'traefik.enable': 'true',
 					'traefik.docker.network': applianceConf.defaultDockerNetworkName,
-					'traefik.domain': containerFacts.containerName + '.' + applianceConf.applianceFQDN,
-					'traefik.backend': containerFacts.containerName,
+					'traefik.domain': context.containerName + '.' + applianceConf.applianceFQDN,
+					'traefik.backend': context.containerName,
 					'traefik.frontend.entryPoints': 'http,https',
-					'traefik.frontend.rule': 'Host:' + containerFacts.containerName + '.' + applianceConf.applianceFQDN,
+					'traefik.frontend.rule': 'Host:' + context.containerName + '.' + applianceConf.applianceFQDN,
 				}
 			}
 		},
