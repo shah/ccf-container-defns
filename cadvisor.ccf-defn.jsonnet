@@ -1,4 +1,4 @@
-local applianceConf = import "common.ccf-conf.jsonnet";
+local common = import "common.ccf-conf.jsonnet";
 local context = import "context.ccf-facts.json";
 
 {
@@ -21,11 +21,11 @@ local context = import "context.ccf-facts.json";
 				],
 				labels: {
 					'traefik.enable': 'true',
-					'traefik.docker.network': applianceConf.defaultDockerNetworkName,
-					'traefik.domain': context.containerName + '.' + applianceConf.applianceFQDN,
+					'traefik.docker.network': common.defaultDockerNetworkName,
+					'traefik.domain': context.containerName + '.' + common.applianceFQDN,
 					'traefik.backend': context.containerName,
 					'traefik.frontend.entryPoints': 'http,https',
-					'traefik.frontend.rule': 'Host:' + context.containerName + '.' + applianceConf.applianceFQDN,
+					'traefik.frontend.rule': 'Host:' + context.containerName + '.' + common.applianceFQDN,
 				}
 			}
 		},
@@ -33,7 +33,7 @@ local context = import "context.ccf-facts.json";
 		networks: {
 			network: {
 				external: {
-					name: applianceConf.defaultDockerNetworkName
+					name: common.defaultDockerNetworkName
 				},
 			},
 		},
