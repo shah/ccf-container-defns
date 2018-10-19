@@ -43,6 +43,8 @@ local command(cmd, params, repl) = [cmd, params % repl];
 		},
 	}),
 
+	"container.make.inc" : ccflib.makeTargets.firewall(context, [139, 445]),
+
 	"after_start.make-plugin.sh" :
 		ccflib.bashSnippets.preamble(context) + 
 		ccflib.bashSnippets.waitForContainerHealthStatus(context, 'healthy') +
