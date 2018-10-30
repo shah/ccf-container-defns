@@ -1,0 +1,8 @@
+{
+        JWT_SECRET : "tXQhvSMWMS11qZ9euEhE6lf2ferf0FR6RYGd8iMXiTxxXtJ1XDVdTXPaLtV12ZGp",
+        EMAIL_NOREPLY : "noreply@yourdomain.com",
+        EMAIL_SMTP_HOST : "smtp.yourdomain.com",
+        EMAIL_SMTP_PORT : "587",
+        EMAIL_SMTP_USERNAME : "user@yourdomain.com",
+        EMAIL_SMTP_PASSWORD : "hkjshksh"
+}
