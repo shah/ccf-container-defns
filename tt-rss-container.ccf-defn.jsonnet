@@ -10,7 +10,7 @@ local traefikConf = import "traefik.conf.jsonnet";
 		services: {
 			container: {
                                 container_name: context.containerName,
-                                image: 'linuxserver/tt-rss'+':142',
+                                image: 'linuxserver/tt-rss:142',
                                 networks: ['network'],
                                 volumes: ['storage:/config'],
                                 labels: {
