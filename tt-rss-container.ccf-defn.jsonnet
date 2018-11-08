@@ -41,18 +41,7 @@ local traefikConf = import "traefik.conf.jsonnet";
     }),
 
     "after_start.make-plugin.sh" : |||
-     #!/bin/bash
-     CONTAINER_NAME=$1
-     WAIT_FOR_MESSAGE="starting services"
-     echo -e "Waiting until $CONTAINER_NAME is healthy via log output. \n"
-     docker logs -f $CONTAINER_NAME | while read LOGLINE
-     do
-     if [[ ${LOGLINE} = *"${WAIT_FOR_MESSAGE}"* ]]; then
-        break
-     fi
-     done
-     echo ""
-     echo "$WAIT_FOR_MESSAGE"
-     docker cp etc/tt-rss-config.php $CONTAINER_NAME:/config/www/tt-rss/config.php
+     ccflib.bashSnippets.preamble(context) + 
+     ccfLib.bashSnippets.waitForContainerLogMessage(context, 'starting services')
     |||,
 }
