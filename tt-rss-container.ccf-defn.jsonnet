@@ -1,7 +1,7 @@
 local common = import "common.ccf-conf.jsonnet";
 local ccflib = import "ccf.libsonnet";
 local context = import "context.ccf-facts.json";
-local traefikConf = import "traefik.conf.jsonnet";
+local traefikConf = import "tt-rss-traefik.conf.jsonnet";
 {
 
      "docker-compose.yml" : std.manifestYamlDoc({
@@ -10,7 +10,7 @@ local traefikConf = import "traefik.conf.jsonnet";
 		services: {
 			container: {
                                 container_name: context.containerName,
-                                image: 'linuxserver/tt-rss:142',
+                                image: 'linuxserver/tt-rss:latest',
                                 networks: ['network'],
                                 volumes: ['storage:/config'],
                                 labels: {
@@ -34,14 +34,13 @@ local traefikConf = import "traefik.conf.jsonnet";
 		},
                 volumes: {
                         storage: {
-                                name: context.containerName + "_data"
+                                name: context.containerName
                         },
                 },
 
     }),
 
-    "after_start.make-plugin.sh" : |||
-     ccflib.bashSnippets.preamble(context) + 
-     ccfLib.bashSnippets.waitForContainerLogMessage(context, 'starting services')
-    |||,
+ "after_start.make-plugin.sh" :
+    ccflib.bashSnippets.preamble(context) + 
+    ccflib.bashSnippets.waitForContainerLogMessage(context, 'starting services')
 }
