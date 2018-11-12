@@ -43,12 +43,12 @@ local webServicePort = 80;
 
  "default.conf" : |||
    server {
-       listen       80;
+       listen %(webServicePort)d;
        server_name  localhost;
        root   /usr/share/nginx/html/output;
        index  index.html index.htm;
    }
-  |||,
+  ||| % { webServicePort: webServicePort },
 
  "Dockerfile" : |||
    FROM ubuntu:18.04 as builder
