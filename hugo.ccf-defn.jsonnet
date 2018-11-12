@@ -1,7 +1,7 @@
 local common = import "common.ccf-conf.jsonnet";
 local ccflib = import "ccf.libsonnet";
 local context = import "context.ccf-facts.json";
-local hugoConf = import "hugo.conf.jsonnet";
+local hugoConf = import "hugo.ccf-conf";
 
 local webServicePort = 80;
 
