@@ -6,20 +6,16 @@ local hugoConf = import "hugo.conf.jsonnet";
 local webServicePort = 80;
 
 {
- "git-log2json.sh" : |||
+ "generate-site.sh" : |||
    #!/usr/bin/env bash
    
-   # Use this one-liner to produce a JSON literal from the Git log:
-   
+   git-log2json () {
    git log \
        --pretty=format:'{%n  "commit": "%H",%n  "author": "%aN <%aE>",%n  "date": "%ad",%n  "message": "%f"%n},' \
        $@ | \
        perl -pe 'BEGIN{print "["}; END{print "]\n"}' | \
    perl -pe 's/},]/}]/'
-  |||,
-
- "hugo.sh" : |||
-   #!/usr/bin/bash
+   }
    
    WATCH="${HUGO_WATCH:=false}"
    SLEEP="${HUGO_REFRESH_TIME:=-1}"
@@ -34,7 +30,7 @@ local webServicePort = 80;
    mkdir -p /src/data/todo
    mkdir -p /src/data/changelog
    leasot -x --reporter json './**/*.js' > /src/data/todo/todo.json
-   cd /src/ && sh /git-log2json.sh > /src/data/changelog/changelog.json
+   cd /src/ && git-log2json > /src/data/changelog/changelog.json
    mkdir /output
    $HUGO --source="/src" --theme="$HUGO_THEME" --destination="/output" --baseUrl="$HUGO_BASEURL" "$@" || exit 1
   |||,
@@ -73,15 +69,13 @@ local webServicePort = 80;
        mv hugo /usr/bin/hugo
 
    RUN /root/.nvm/versions/node/v8.10.0/bin/npm install  leasot@next -g
-   COPY ./git-log2json.sh /git-log2json.sh
-   RUN chmod +x /git-log2json.sh
    RUN apt-get install git -y
-   COPY ./hugo.sh /hugo.sh
+   COPY ./generate-site.sh /generate-site.sh
    COPY ./git-repo /src
    VOLUME /src
    WORKDIR /src
-   RUN chmod +x /hugo.sh
-   RUN bash /hugo.sh
+   RUN chmod +x /generate-site.sh
+   RUN bash /generate-site.sh
    #Nginx
    FROM nginx:alpine
    RUN rm -rf /usr/share/nginx/html/*
@@ -106,7 +100,7 @@ local webServicePort = 80;
 		        	        'HUGO_THEME': hugoConf.theme,
 					'HUGO_BASEURL': hugoConf.baseurl,
 				},
-                                ports: ['80:80'],
+                                ports: [ hugoConf.port + ':' + webServicePort ],
                          }
                 },
                 networks: {
