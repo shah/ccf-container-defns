@@ -44,7 +44,7 @@ local traefik = import "tt-rss-traefik.ccf-conf.jsonnet";
     ccflib.bashSnippets.preamble(context) +
     ccflib.bashSnippets.waitForContainerLogMessage(context, 'starting services') +
     'echo -e "\n****************************************************\n"
-    echo -e "Please take tt-rss URL in browser and do the following steps:"
+    echo -e "Please take tt-rss URL in browser and do the following steps to complete the installation:"
     echo -e "\n  1. Give database details \n  2. Initialize database \n  3. Save config file"'
 }
 
