@@ -1,0 +1,4 @@
+{
+ ttrssurl: "read.netspective.com"
+}
+
