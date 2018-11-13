@@ -1,7 +1,7 @@
 local common = import "common.ccf-conf.jsonnet";
 local ccflib = import "ccf.libsonnet";
 local context = import "context.ccf-facts.json";
-local hugoConf = import "hugo.ccf-conf";
+local hugo = import "hugo.ccf-conf.jsonnet";
 
 local webServicePort = 80;
 
@@ -97,10 +97,10 @@ local webServicePort = 80;
                 		image: context.containerName + ':latest',
                                 networks: ['network'],
 				environment: {
-		        	        'HUGO_THEME': hugoConf.theme,
-					'HUGO_BASEURL': hugoConf.baseurl,
+		        	        'HUGO_THEME': hugo.theme,
+					'HUGO_BASEURL': hugo.baseurl,
 				},
-                                ports: [ hugoConf.port + ':' + webServicePort ],
+                                ports: [ hugo.port + ':' + webServicePort ],
                          }
                 },
                 networks: {
