@@ -4,11 +4,18 @@ local context = import "context.ccf-facts.json";
 local hugo = import "hugo.ccf-conf.jsonnet";
 
 local webServicePort = 80;
+local oauth2_http_port = 4180;
 
 {
+ "oauth2-proxy.sh" : |||
+   cd /opt/
+   screen -S oauth2-proxy -X logfile /opt/oauth2-proxy.log &&  screen -S oauth2-proxy -X log
+   ./oauth2_proxy   --authenticated-emails-file=/opt/oauth2-authorized-users.conf -upstream=%(upstream)s -cookie-secret=%(cookie_secret)s -client-id=%(client_id)s -client-secret=%(client_secret)s  -provider="%(provider)s" -cookie-secure=%(cookie_secure)s
+  |||  % { upstream : hugo.oauth2_upstream, cookie_secret : hugo.oauth2_cookie_secret, client_id : hugo.oauth2_client_id, client_secret : hugo.oauth2_client_secret, provider : hugo.oauth2_provider, cookie_secure : hugo.oauth2_cookie_secure},
+
  "generate-site.sh" : |||
    #!/usr/bin/env bash
-   
+
    git-log2json () {
    git log \
        --pretty=format:'{%n  "commit": "%H",%n  "author": "%aN <%aE>",%n  "date": "%ad",%n  "message": "%f"%n},' \
@@ -16,16 +23,16 @@ local webServicePort = 80;
        perl -pe 'BEGIN{print "["}; END{print "]\n"}' | \
    perl -pe 's/},]/}]/'
    }
-   
+
    WATCH="${HUGO_WATCH:=false}"
    SLEEP="${HUGO_REFRESH_TIME:=-1}"
    echo "HUGO_WATCH:" $WATCH
    echo "HUGO_THEME:" $HUGO_THEME
    echo "HUGO_BASEURL" $HUGO_BASEURL
    echo "ARGS" $@
-   
+
    HUGO=/usr/bin/hugo
-   
+
    echo "Building one time..."
    mkdir -p /src/data/todo
    mkdir -p /src/data/changelog
@@ -37,18 +44,51 @@ local webServicePort = 80;
 
  "run.sh" : |||
    #!/bin/sh
+   /usr/bin/screen -dmS oauth2-proxy /bin/sh /opt/oauth2-proxy.sh
    nginx
    tail -f /dev/null
   |||,
 
  "default.conf" : |||
    server {
-       listen %(webServicePort)d;
-       server_name  localhost;
-       root   /usr/share/nginx/html/output;
-       index  index.html index.htm;
+   listen %(webServicePort)d;
+
+   location /oauth2/ {
+   proxy_pass       http://localhost:%(oath_http_port)s;
+   proxy_set_header Host                    $host;
+   proxy_set_header X-Real-IP               $remote_addr;
+   proxy_set_header X-Scheme                $scheme;
+   proxy_set_header X-Auth-Request-Redirect $request_uri;
    }
-  ||| % { webServicePort: webServicePort },
+
+   location = /oauth2/auth {
+   proxy_pass       http://localhost:%(oath_http_port)s;
+   proxy_set_header Host             $host;
+   proxy_set_header X-Real-IP        $remote_addr;
+   proxy_set_header X-Scheme         $scheme;
+   # nginx auth_request includes headers but not body
+   proxy_set_header Content-Length   "";
+   proxy_pass_request_body           off;
+   }
+   location / {
+   auth_request /oauth2/auth;
+   error_page 401 = /oauth2/sign_in;
+
+   # pass information via X-User and X-Email headers to backend,
+   # requires running with --set-xauthrequest flag
+   auth_request_set $user   $upstream_http_x_auth_request_user;
+   auth_request_set $email  $upstream_http_x_auth_request_email;
+   proxy_set_header X-User  $user;
+   proxy_set_header X-Email $email;
+
+   # if you enabled --cookie-refresh, this is needed for it to work with auth_request
+   auth_request_set $auth_cookie $upstream_http_set_cookie;
+   add_header Set-Cookie $auth_cookie;
+   root   /usr/share/nginx/html/output;
+   index  index.html index.htm;
+   }
+   }
+  ||| % { webServicePort : webServicePort, oath_http_port : oauth2_http_port },
 
  "Dockerfile" : |||
    FROM ubuntu:18.04 as builder
@@ -71,7 +111,7 @@ local webServicePort = 80;
    RUN /root/.nvm/versions/node/v8.10.0/bin/npm install  leasot@next -g
    RUN apt-get install git -y
    COPY ./generate-site.sh /generate-site.sh
-   COPY ./git-repo /src
+   RUN cd / && git clone https://%(github_id)s:%(github_access_token)s@%(github_repo)s src
    VOLUME /src
    WORKDIR /src
    RUN chmod +x /generate-site.sh
@@ -83,10 +123,20 @@ local webServicePort = 80;
    COPY default.conf /etc/nginx/conf.d/default.conf
    EXPOSE %(webServicePort)d
    RUN apk  update && apk add vim
+   RUN apk add wget
+   RUN apk add screen
+   RUN apk add libc6-compat
+   RUN apk add ca-certificates
+   RUN mkdir /opt && cd /opt && wget https://github.com/bitly/oauth2_proxy/releases/download/v2.2/oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
+   RUN cd /opt && tar -xvf oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
+   RUN mv /opt/oauth2_proxy-2.2.0.linux-amd64.go1.8.1/oauth2_proxy /opt/oauth2_proxy
+   COPY oauth2-proxy.sh /opt/oauth2-proxy.sh
+   RUN chmod a+x /opt/oauth2-proxy.sh
+   COPY oauth2-authorized-users.conf /opt/oauth2-authorized-users.conf
    COPY run.sh /root/run.sh
    RUN chmod a+x /root/run.sh
    CMD sh /root/run.sh
-  ||| % { webServicePort: webServicePort },
+  ||| % { webServicePort: webServicePort, github_repo : hugo.github_repo, github_access_token : hugo.github_access_token, github_id : hugo.github_id },
 
  "docker-compose.yml" : std.manifestYamlDoc({
                 version: '3.4',
@@ -94,13 +144,23 @@ local webServicePort = 80;
                         container: {
                                 build: '.',
                                 container_name: context.containerName,
-                		image: context.containerName + ':latest',
+                                image: context.containerName + ':latest',
                                 networks: ['network'],
-				environment: {
-		        	        'HUGO_THEME': hugo.theme,
-					'HUGO_BASEURL': hugo.baseurl,
-				},
-                                ports: [ hugo.port + ':' + webServicePort ],
+                                environment: {
+                                        'HUGO_THEME': hugo.theme,
+                                        'HUGO_BASEURL': hugo.baseurl,
+                                },
+                                volumes: ['storage:' + hugo.oauth2_StoragePathInContainer],
+                                labels: {
+                                        'traefik.enable': 'true',
+                                        'traefik.docker.network': common.defaultDockerNetworkName,
+                                        'traefik.domain': hugo.hugourl,
+                                        'traefik.backend': context.containerName,
+                                        'traefik.port': '80',
+                                        'traefik.frontend.entryPoints': 'http,https',
+                                        'traefik.frontend.rule': 'Host:' + hugo.hugourl,
+                                }
+
                          }
                 },
                 networks: {
@@ -110,6 +170,11 @@ local webServicePort = 80;
                                 },
                         },
                 },
-
+                volumes: {
+                        storage: {
+                                name: context.containerName
+                         },
+                      },
     }),
 }
+
