@@ -1,6 +1,7 @@
 local common = import "common.ccf-conf.jsonnet";
+local ccflib = import "ccf.libsonnet";
 local context = import "context.ccf-facts.json";
-local containerSecrets = import "postgres.secrets.jsonnet";
+local containerSecrets = import "postgres.secrets.ccf-conf.jsonnet";
 
 {
 	"docker-compose.yml" : std.manifestYamlDoc({

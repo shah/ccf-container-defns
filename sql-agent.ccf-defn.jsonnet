@@ -1,6 +1,6 @@
 local common = import "common.ccf-conf.jsonnet";
 local context = import "context.ccf-facts.json";
-local sqlAgentConf = import "sql-agent.conf.jsonnet";
+local sqlAgentConf = import "sql-agent.ccf-conf.jsonnet";
 
 {
 	"docker-compose.yml" : std.manifestYamlDoc({

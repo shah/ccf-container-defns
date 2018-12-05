@@ -1,7 +1,8 @@
 local common = import "common.ccf-conf.jsonnet";
 local context = import "context.ccf-facts.json";
-local prometheusConf = import "prometheus.conf.jsonnet";
-local prometheusSqlAgentExporterConf = import "prometheus-sql-agent-exporter.conf.jsonnet";
+local prometheusConf = import "prometheus.ccf-conf.jsonnet";
+local dockerConf = import "docker-localhost.ccf-facts.json";
+local prometheusSqlAgentExporterConf = import "prometheus-sql-agent-exporter.ccf-conf.jsonnet";
 
 local webServicePort = prometheusConf.webServicePort;
 local webServicePortInContainer = webServicePort;
@@ -22,7 +23,7 @@ local tsdbStoragePathInContainer = '/var/prometheus/data';
 				networks: ['network'],
 				volumes: [
 					'storage:' + tsdbStoragePathInContainer,
-					context.containerDefnHome + '/prometheus.yml:' + promConfigFileInContainer,
+					context.containerDefnHome + '/etc/prometheus.yml:' + promConfigFileInContainer,
 				],
 				user: "root", // SNS: by default Prometheus container runs as nobody:nogroup but volumes are owned by root so we switch
 				labels: {
@@ -51,7 +52,7 @@ local tsdbStoragePathInContainer = '/var/prometheus/data';
 		},
 	}),
 
-	"prometheus.yml" : std.manifestYamlDoc({
+	"etc/prometheus.yml" : std.manifestYamlDoc({
 		global: {
 			scrape_interval: "1m",
 			scrape_timeout: "10s",
@@ -72,18 +73,18 @@ local tsdbStoragePathInContainer = '/var/prometheus/data';
 			{
 				job_name: "node",
 				scrape_interval: "15s",
-				static_configs: [ { targets: [context.DOCKER_HOST_IP_ADDR + ":9100"] } ]
+				static_configs: [ { targets: [dockerConf.dockerHostIPAddress + ":9100"] } ]
 			},
 			// This requires prometheus-node-exporter package to be installed in Docker host
 			{
 				job_name: "sql-agent",
 				scrape_interval: "1m", // watch this carefully and make sure sql-agent exporter doesn't encounter jitter
-				static_configs: [ { targets: [context.DOCKER_HOST_IP_ADDR + ":" + prometheusSqlAgentExporterConf.webServicePort] } ]
+				static_configs: [ { targets: [dockerConf.dockerHostIPAddress + ":" + prometheusSqlAgentExporterConf.webServicePort] } ]
 			},
 			{
 				job_name: "cadvisor",
 				scrape_interval: "15s",
-				static_configs: [ {	targets: [ context.DOCKER_HOST_IP_ADDR + ":8080"] } ]
+				static_configs: [ {	targets: [ dockerConf.dockerHostIPAddress + ":8080"] } ]
 			},
 			// TODO: figure out how to add container tags and auto-discovery of metrics sources
 			//       using file_sd_config instead of static_configs
