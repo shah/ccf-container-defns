@@ -92,12 +92,12 @@ local traefikLogsDirInContainer = "/var/log/traefik";
 		}
 	}),
 
-	"after_configure.make-plugin.sh" : |||
-	    #!/usr/bin/env bash
-		echo "Preparing ACME config permissions for LetsEncrypt configuration"
-		sudo touch acme.json
-		sudo chmod 600 acme.json
-	|||,
+        "after_configure.make-plugin.sh" : |||
+            #!/usr/bin/env bash
+                echo "Preparing ACME config permissions for LetsEncrypt configuration"
+                sudo touch acme.json
+                sudo chmod 600 acme.json
+        |||,
 
 	"container.make.inc" : |||
 		## Generate an HTTP Basic Auth password
