@@ -36,7 +36,7 @@ local oauth2HttpPort = 4180;
 
    echo "Building one time..."
    mkdir -p /src/layouts/_default
-   mkdir -p mkdir -p /src/layouts/partials
+   mkdir -p /src/layouts/partials
 
   ||| + std.lines([ 'mkdir -p /src/content/%(menuItemName)s/changelog && cd /src/content/%(menuItemName)s/changelog &&  cat <<EOF >> _index.md
 ---
