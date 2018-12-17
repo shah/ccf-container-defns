@@ -13,18 +13,18 @@
  hugoGitRepo: "git.netspective.io/sijo_mc/hugo-test.git",
  authorizedUsersFilePath: "conf/oauth2-github-authorized-users.conf",
  gitHubId: "sijo_mc",
- gitHubAccessToken: "3F76HXVQ8jy5ijGRBTds",
+ gitHubAccessToken: "F76HXdf",
  gitRepo : [
                 {
                    gitHubRepo: "git.netspective.io/sijo_mc/hugo-test.git",
                    gitHubId: "sijo_mc",
-                   gitHubAccessToken: "3F76HXVQ8jy5ijGRBTds",
+                   gitHubAccessToken: "F76HXdf",
                    menuItemName: "gitrepo1",
                 },
                 {
                    gitHubRepo: "git.netspective.io/sijo_mc/hugo-test.git",
                    gitHubId: "sijo_mc",
-                   gitHubAccessToken: "3F76HXVQ8jy5ijGRBTds",
+                   gitHubAccessToken: "F76HXdf",
                    menuItemName: "gitrepo2",
                 },
           ]

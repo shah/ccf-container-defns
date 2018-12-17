@@ -1,7 +1,7 @@
 local common = import "common.ccf-conf.jsonnet";
 local ccflib = import "ccf.libsonnet";
 local context = import "context.ccf-facts.json";
-local hugo = import "hugo-multiple-git-repo.ccf-conf.jsonnet";
+local hugo = import "hugo.ccf-conf.jsonnet";
 
 local webServicePort = 80;
 local oauth2HttpPort = 4180;
@@ -36,16 +36,23 @@ local oauth2HttpPort = 4180;
 
    echo "Building one time..."
    mkdir -p /src/layouts/_default
-   mkdir -p /src/layouts/partials
+   mkdir -p mkdir -p /src/layouts/partials
 
-  ||| + std.lines([ 'mkdir -p /src/content/%(menuItemName)s/changelog && cd /src/content/%(menuItemName)s/changelog &&  cat <<EOF >> _index.md
+  ||| + std.lines([ 'mkdir -p /src/content/repositories/%(menuItemName)s/changelog && cd /src/content/repositories/%(menuItemName)s/changelog &&  cat <<EOF >> _index.md
 ---
 title: Changelog
 type: page
 layout: %(menuItemName)s-changelog
 ---
 EOF' % item for item in hugo.gitRepo]) +
-std.lines([ 'mkdir -p /src/content/%(menuItemName)s/to-do && cd /src/content/%(menuItemName)s/to-do && cat <<EOF >>_index.md
+std.lines([ 'cd /src/content/repositories/%(menuItemName)s &&  cat <<EOF >> _index.md
+---
+title: %(menuItemName)s
+type: page
+layout: %(menuItemName)s-changelog
+---
+EOF' % item for item in hugo.gitRepo]) +
+std.lines([ 'mkdir -p /src/content/repositories/%(menuItemName)s/to-do && cd /src/content/repositories/%(menuItemName)s/to-do && cat <<EOF >>_index.md
 ---
 title: To-do
 type: page
@@ -227,7 +234,7 @@ std.lines([ "sed -i 's#:= #$jsonURL := #g' /src/layouts/partials/%(menuItemName)
    RUN apk add screen
    RUN apk add libc6-compat
    RUN apk add ca-certificates
-   RUN mkdir /opt && cd /opt && wget https://github.com/bitly/oauth2_proxy/releases/download/v2.2/oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
+   RUN cd /opt && wget https://github.com/bitly/oauth2_proxy/releases/download/v2.2/oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
    RUN cd /opt && tar -xvf oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
    RUN mv /opt/oauth2_proxy-2.2.0.linux-amd64.go1.8.1/oauth2_proxy /opt/oauth2_proxy
    COPY oauth2-proxy.sh /opt/oauth2-proxy.sh
