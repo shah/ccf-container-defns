@@ -257,7 +257,6 @@ std.lines([ "sed -i 's#:= #$jsonURL := #g' /src/layouts/partials/%(menuItemName)
                                         'HUGO_BASEURL': hugo.baseUrl,
                                 },
                                 volumes: ['storage:' + hugo.oauth2StoragePathInContainer],
-                                ports: [ hugo.port + ':' + webServicePort, oauth2HttpPort + ':' + oauth2HttpPort ],
                                 labels: {
                                         'traefik.enable': 'true',
                                         'traefik.docker.network': common.defaultDockerNetworkName,
