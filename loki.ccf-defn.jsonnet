@@ -1,7 +1,6 @@
 local common = import "common.ccf-conf.jsonnet";
 local context = import "context.ccf-facts.json";
 local dockerFacts = import "eth0-interface-localhost.ccf-facts.json";
-local traefikConf = import "traefikEventNav.ccf-conf.jsonnet";
 
 local webServicePort = 3100;
 local webServicePortInContainer = webServicePort;
