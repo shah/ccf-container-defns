@@ -62,10 +62,6 @@ local sonar = import "sonar.ccf-conf.jsonnet";
        && chmod +x /usr/local/bin/gosu \
        && gosu nobody true
    RUN set -x \
-       # pub   2048R/D26468DE 2015-05-25
-       #       Key fingerprint = F118 2E81 C792 9289 21DB  CAB4 CFCA 4A29 D264 68DE
-       # uid                  sonarsource_deployer (Sonarsource Deployer) <infra@sonarsource.com>
-       # sub   2048R/06855C1D 2015-05-25
        && (gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys F1182E81C792928921DBCAB4CFCA4A29D26468DE \
                || gpg --batch --keyserver ipv4.pool.sks-keyservers.net --recv-keys F1182E81C792928921DBCAB4CFCA4A29D26468DE) \
        && cd /opt \
@@ -77,6 +73,7 @@ local sonar = import "sonar.ccf-conf.jsonnet";
        && chown -R sonarqube:sonarqube sonarqube \
        && rm sonarqube.zip*
    RUN cd /opt/sonarqube/extensions/plugins && wget https://github.com/dmeiners88/sonarqube-prometheus-exporter/releases/download/v1.0.0-SNAPSHOT-2018-07-04/sonar-prometheus-exporter-1.0.0-SNAPSHOT.jar
+   RUN cd /opt/sonarqube/extensions/plugins && wget https://github.com/stevespringett/dependency-check-sonar-plugin/releases/download/1.2.1/sonar-dependency-check-plugin-1.2.1.jar
    VOLUME "$SONARQUBE_HOME/data"
    # Http port
    EXPOSE 9000
