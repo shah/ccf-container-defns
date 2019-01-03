@@ -14,8 +14,9 @@ local containerSecrets = import "postgres.secrets.ccf-conf.jsonnet";
 				restart: 'always',
 				ports: [containerSecrets.databasePort + ':5432'],
 				networks: ['network'],
-				volumes: ['storage:/var/lib/postgresql/data'],
+				volumes: ['storage:/var/lib/postgresql/data', context.containerDefnHome + '/etc/db-init:/docker-entrypoint-initdb.d'],
 				environment: [
+                    'POSTGRES_DB=' +  containerSecrets.databaseName,
 					'POSTGRES_USER=' + containerSecrets.adminUser,
 					'POSTGRES_PASSWORD=' + containerSecrets.adminPassword
 				]
@@ -39,5 +40,5 @@ local containerSecrets = import "postgres.secrets.ccf-conf.jsonnet";
 
 	"after_start.make-plugin.sh" :
 		ccflib.bashSnippets.preamble(context) + 
-		ccflib.bashSnippets.waitForContainerStatus(context, 'running'),
+        ccflib.bashSnippets.waitForContainerStatus(context, 'running'),
 }
