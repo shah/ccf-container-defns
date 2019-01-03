@@ -3,6 +3,7 @@ local context = import "context.ccf-facts.json";
 local prometheusConf = import "prometheus.ccf-conf.jsonnet";
 local dockerConf = import "docker-localhost.ccf-facts.json";
 local prometheusSqlAgentExporterConf = import "prometheus-sql-agent-exporter.ccf-conf.jsonnet";
+local traefikConf = import "traefik.ccf-conf.jsonnet";
 
 local webServicePort = prometheusConf.webServicePort;
 local webServicePortInContainer = webServicePort;
@@ -29,10 +30,10 @@ local tsdbStoragePathInContainer = '/var/prometheus/data';
 				labels: {
 					'traefik.enable': 'true',
 					'traefik.docker.network': common.defaultDockerNetworkName,
-					'traefik.domain': context.containerName + '.' + common.applianceFQDN,
+					'traefik.domain': context.containerName + '.' + traefikConf.applianceFQDN,
 					'traefik.backend': context.containerName,
 					'traefik.frontend.entryPoints': 'http,https',
-					'traefik.frontend.rule': 'Host:' + context.containerName + '.' + common.applianceFQDN,
+					'traefik.frontend.rule': 'Host:' + context.containerName + '.' + traefikConf.applianceFQDN,
 				}
 			},
 		},
