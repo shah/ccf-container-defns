@@ -6,7 +6,7 @@ local webServicePort = 3100;
 local webServicePortInContainer = webServicePort;
 local lokiConfigFileInContainer = '/etc/loki/loki-local-config.yml';
 local promtailConfigFileInContainer = '/etc/promtail/promtail-docker-config.yml';
-local lokiLogDirectory = '/var/log/loki';
+local lokiLogDirectory = '/var/log';
 
 {
 	"docker-compose.yml" : std.manifestYamlDoc({
