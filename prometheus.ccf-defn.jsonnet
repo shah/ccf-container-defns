@@ -87,6 +87,13 @@ local tsdbStoragePathInContainer = '/var/prometheus/data';
 				scrape_interval: "15s",
 				static_configs: [ {	targets: [ dockerConf.dockerHostIPAddress + ":8080"] } ]
 			},
+            // This requires postgres_exporter container to be up and running
+            {
+                 job_name: "postgres",
+                 scrape_interval: "15s",
+                 metrics_path: "/metrics",
+                 static_configs: [ { targets: [ dockerConf.dockerHostIPAddress + ":9187"] } ]
+             },
 			// TODO: figure out how to add container tags and auto-discovery of metrics sources
 			//       using file_sd_config instead of static_configs
 			// {
