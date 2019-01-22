@@ -3,5 +3,5 @@
 	databaseName: "superset",
 	databaseUser: "superset",
 	databasePassword: "superset",
-	adminPassword: "rinshad345"
+	adminPassword: "superset@123"
 }

@@ -125,37 +125,35 @@ local containerSecrets = import "superset.secrets.ccf-conf.jsonnet";
     "docker-compose.yml" : std.manifestYamlDoc({
                version: '3.4',
                services: {
-				        redis_superset: {
-                                container_name: 'redis_superset',
-                                image: 'redis',
-                                restart: 'always',
-                                networks: ['network'],
-                                volumes: ['storage1:/data'],
-                        },
-				        
-                        postgres_superset: {
-                                container_name: 'postgres_superset',
-                                image: 'postgres',
-                                restart: 'always',
-                                networks: ['network'],
-                                volumes: ['storage2:/var/lib/postgresql/data'],
-                                environment: [
-                                        'POSTGRES_USER=' + containerSecrets.databaseUser,
-                                        'POSTGRES_PASSWORD=' + containerSecrets.databasePassword,
-                                        'POSTGRES_DB=' + containerSecrets.databaseName
-                                ]
-                        },
+			 redis_superset: {
+                         	container_name: 'redis_superset',
+                         	image: 'redis',
+                         	restart: 'always',
+                         	networks: ['network'],
+                         	volumes: ['storage1:/data'],
+                        	},	        
+                         postgres_superset: {
+                        	container_name: 'postgres_superset',
+                        	image: 'postgres',
+                       		restart: 'always',
+                        	networks: ['network'],
+                        	volumes: ['storage2:/var/lib/postgresql/data'],
+                        	environment: [
+                              		'POSTGRES_USER=' + containerSecrets.databaseUser,
+                              		'POSTGRES_PASSWORD=' + containerSecrets.databasePassword,
+                              		'POSTGRES_DB=' + containerSecrets.databaseName
+                               		]
+                        	},
                         superset: {
-								container_name: 'superset' ,
-								restart: 'always',
-								build: '.',
-								ports: ['8088:8088'],
-								networks: ['network'],
-								volumes: ['./superset_config.py:/etc/superset/superset_config.py'],
-								depends_on: ['redis_superset','postgres_superset']
-
-						}
-               },
+                               container_name: 'superset' ,
+                               restart: 'always',
+                               build: '.',
+                               ports: ['8088:8088'],
+                               networks: ['network'],
+                               volumes: ['./superset_config.py:/etc/superset/superset_config.py'],
+                               depends_on: ['redis_superset','postgres_superset']
+                               }
+                },
 
                networks: {
                         network: {
@@ -169,7 +167,7 @@ local containerSecrets = import "superset.secrets.ccf-conf.jsonnet";
                         storage1: {
                                 name: 'redis_superset'
                         },
-						storage2: {
+                        storage2: {
                                 name: 'postgres_superset'
                         },
                },
