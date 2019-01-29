@@ -150,7 +150,7 @@ local containerSecrets = import "superset.secrets.ccf-conf.jsonnet";
                                build: '.',
                                ports: ['8088:8088'],
                                networks: ['network'],
-                               volumes: ['./superset_config.py:/etc/superset/superset_config.py'],
+                               volumes: [context.containerDefnHome + '/superset_config.py:/etc/superset/superset_config.py'],
                                depends_on: ['redis_superset','postgres_superset']
                                }
                 },
