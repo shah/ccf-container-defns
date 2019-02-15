@@ -117,7 +117,7 @@ local containerSecrets = import "superset.secrets.ccf-conf.jsonnet";
 "docker-compose.yml" : std.manifestYamlDoc({
               version: '3.4',
               services: {
-		 redis_superset: {
+		redis_superset: {
                        	container_name: 'redis_superset',
                        	image: 'redis',
                        	restart: 'always',
@@ -143,7 +143,16 @@ local containerSecrets = import "superset.secrets.ccf-conf.jsonnet";
                         ports: ['8088:8088'],
                         networks: ['network'],
                         volumes: [context.containerDefnHome + '/superset_config.py:/etc/superset/superset_config.py'],
-                        depends_on: ['redis_superset','postgres_superset']
+                        depends_on: ['redis_superset','postgres_superset'],
+                        labels: {
+				'traefik.enable': 'true',
+                                'traefik.docker.network': common.defaultDockerNetworkName,
+                                'traefik.domain': containerSecrets.supersetUrl,
+                                'traefik.backend': 'superset',
+                                'traefik.port': '8088',
+                                'traefik.frontend.entryPoints': 'http,https',
+                                'traefik.frontend.rule': 'Host:' + containerSecrets.supersetUrl
+                                }
                         }
              },
              networks: {
