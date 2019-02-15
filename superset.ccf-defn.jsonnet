@@ -61,33 +61,40 @@ local containerSecrets = import "superset.secrets.ccf-conf.jsonnet";
   superset==${SUPERSET_VERSION} && \
   rm requirements.txt requirements-tmp.txt
   COPY superset-init /usr/local/bin/
-  COPY entrypoint.sh /entrypoint.sh
-  RUN chmod +x /usr/local/bin/superset-init /entrypoint.sh
+  RUN chmod +x /usr/local/bin/superset-init
   VOLUME /home/superset \
   /etc/superset \
   /var/lib/superset
   WORKDIR /home/superset
   EXPOSE 8088
   HEALTHCHECK CMD ["curl", "-f", "http://localhost:8088/health"]
-  ENTRYPOINT ["/entrypoint.sh"]
+  CMD ["/usr/local/bin/superset-init"]
   USER superset
  ||| % { supersetVersion: containerSecrets.supersetVersion },
    
  "superset-init" : |||
   #!/bin/bash
-  set -e
+  CONTAINER_ALREADY_STARTED="/home/superset/.started"
+  if [ ! -e $CONTAINER_ALREADY_STARTED ]; then
+     touch $CONTAINER_ALREADY_STARTED
+     echo "Initializing superset.."
   # Waiting for postgres database
-  until PGPASSWORD=%(postgresPassword)s psql -h "postgres_superset" -U "%(postgresUser)s" -c '\q'; do
-  >&2 echo "Postgres is unavailable - sleeping"
-  sleep 1
+  until PGPASSWORD=%(postgresPassword)s psql -h "postgres_superset" -U "%(postgresUser)s" -c '\q' >/dev/null 2>&1; do
+  sleep 2
   done
   # Create an admin user
-  fabmanager create-admin --app superset --username admin --firstname admin --lastname admin --email admin@fab.org --password %(uiPassword)s
+  fabmanager create-admin --app superset --username admin --firstname admin --lastname admin --email admin@fab.org --password %(uiPassword)s >/dev/null 2>&1
   # Initialize the database
-  superset db upgrade
+  superset db upgrade >/dev/null 2>&1
   # Create default roles and permissions
   export SUPERSET_UPDATE_PERMS=1
-  superset init
+  superset init >/dev/null 2>&1
+  export SUPERSET_UPDATE_PERMS=0 
+  gunicorn superset:app
+  else
+  export SUPERSET_UPDATE_PERMS=0
+  gunicorn superset:app
+  fi
  ||| % { uiPassword : containerSecrets.adminPassword, postgresUser : containerSecrets.databaseUser, postgresPassword : containerSecrets.databasePassword }, 
    
 "superset_config.py" : |||
@@ -104,72 +111,55 @@ local containerSecrets = import "superset.secrets.ccf-conf.jsonnet";
  SQLALCHEMY_DATABASE_URI = \
  'postgresql+psycopg2://%(postgresUser)s:%(postgresPassword)s@postgres_superset:5432/%(postgresDB)s'
  SQLALCHEMY_TRACK_MODIFICATIONS = True
- SECRET_KEY = 'thisISaSECRET_1234'
+ SECRET_KEY = 'ItIsSECrET786'
 ||| % { postgresUser : containerSecrets.databaseUser, postgresPassword : containerSecrets.databasePassword, postgresDB : containerSecrets.databaseName },
    
-"entrypoint.sh" : |||
- #!/bin/bash
- CONTAINER_ALREADY_STARTED="/home/superset/.started"
- if [ ! -e $CONTAINER_ALREADY_STARTED ]; then
-    touch $CONTAINER_ALREADY_STARTED
-    echo "First container startup"
-    export SUPERSET_UPDATE_PERMS=0
-    gunicorn superset:app&
-    /usr/local/bin/superset-init
- else
-    echo "Not first container startup"
-    gunicorn superset:app
- fi
-|||,
-   
-    "docker-compose.yml" : std.manifestYamlDoc({
-               version: '3.4',
-               services: {
-			 redis_superset: {
-                         	container_name: 'redis_superset',
-                         	image: 'redis',
-                         	restart: 'always',
-                         	networks: ['network'],
-                         	volumes: ['storage1:/data'],
-                        	},	        
-                         postgres_superset: {
-                        	container_name: 'postgres_superset',
-                        	image: 'postgres',
-                       		restart: 'always',
-                        	networks: ['network'],
-                        	volumes: ['storage2:/var/lib/postgresql/data'],
-                        	environment: [
-                              		'POSTGRES_USER=' + containerSecrets.databaseUser,
-                              		'POSTGRES_PASSWORD=' + containerSecrets.databasePassword,
-                              		'POSTGRES_DB=' + containerSecrets.databaseName
-                               		]
-                        	},
-                        superset: {
-                               container_name: 'superset' ,
-                               restart: 'always',
-                               build: '.',
-                               ports: ['8088:8088'],
-                               networks: ['network'],
-                               volumes: [context.containerDefnHome + '/superset_config.py:/etc/superset/superset_config.py'],
-                               depends_on: ['redis_superset','postgres_superset']
-                               }
-                },
-
-               networks: {
-                        network: {
-                                external: {
-                                     name: common.defaultDockerNetworkName
-                                },
-                        },
-                },
-
-               volumes: {
-                        storage1: {
-                                name: 'redis_superset'
-                        },
-                        storage2: {
-                                name: 'postgres_superset'
-                        },
-               },
-        },
-)}
+"docker-compose.yml" : std.manifestYamlDoc({
+              version: '3.4',
+              services: {
+		 redis_superset: {
+                       	container_name: 'redis_superset',
+                       	image: 'redis',
+                       	restart: 'always',
+                       	networks: ['network'],
+                       	volumes: ['storage1:/data'],
+                      	},	        
+                postgres_superset: {
+                      	container_name: 'postgres_superset',
+                      	image: 'postgres',
+              		restart: 'always',
+                      	networks: ['network'],
+                       	volumes: ['storage2:/var/lib/postgresql/data'],
+                       	environment: [
+                     		'POSTGRES_USER=' + containerSecrets.databaseUser,
+                      		'POSTGRES_PASSWORD=' + containerSecrets.databasePassword,
+                       		'POSTGRES_DB=' + containerSecrets.databaseName
+                       		]
+                       	},
+                superset: {
+                        container_name: 'superset' ,
+                        restart: 'always',
+                        build: '.',
+                        ports: ['8088:8088'],
+                        networks: ['network'],
+                        volumes: [context.containerDefnHome + '/superset_config.py:/etc/superset/superset_config.py'],
+                        depends_on: ['redis_superset','postgres_superset']
+                        }
+             },
+             networks: {
+                     network: {
+                           external: {
+                               name: common.defaultDockerNetworkName
+                           },
+                     },
+             },
+             volumes: {
+                      storage1: {
+	                      name: 'redis_superset'
+                      },
+                      storage2: {
+                              name: 'postgres_superset'
+                      },
+            },
+}),
+}
