@@ -136,7 +136,7 @@ local oauth2_http_port = 4180;
    COPY run.sh /root/run.sh
    RUN chmod a+x /root/run.sh
    CMD sh /root/run.sh
-  ||| % { webServicePort: webServicePort, github_repo : hugo.github_repo, github_access_token : hugo.github_access_token, github_id : hugo.github_id },
+  ||| % { webServicePort: webServicePort, github_repo : hugo.github_repo, github_access_token : hugo.github_access_token, github_id : hugo.github_id, authorizedUsersFilePath : hugo.authorizedUsersFilePath },
 
  "docker-compose.yml" : std.manifestYamlDoc({
                 version: '3.4',
