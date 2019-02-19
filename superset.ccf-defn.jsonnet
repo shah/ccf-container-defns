@@ -74,26 +74,25 @@ local containerSecrets = import "superset.secrets.ccf-conf.jsonnet";
    
  "superset-init" : |||
   #!/bin/bash
-  CONTAINER_ALREADY_STARTED="/home/superset/.started"
-  if [ ! -e $CONTAINER_ALREADY_STARTED ]; then
-     touch $CONTAINER_ALREADY_STARTED
-     echo "Initializing superset.."
   # Waiting for postgres database
   until PGPASSWORD=%(postgresPassword)s psql -h "postgres_superset" -U "%(postgresUser)s" -c '\q' >/dev/null 2>&1; do
   sleep 2
   done
-  # Create an admin user
-  fabmanager create-admin --app superset --username admin --firstname admin --lastname admin --email admin@fab.org --password %(uiPassword)s >/dev/null 2>&1
-  # Initialize the database
-  superset db upgrade >/dev/null 2>&1
-  # Create default roles and permissions
-  export SUPERSET_UPDATE_PERMS=1
-  superset init >/dev/null 2>&1
-  export SUPERSET_UPDATE_PERMS=0 
-  gunicorn superset:app
+  USER_COUNT=$(fabmanager list-users --app superset | awk '/email/ {print}' | wc -l)
+  if [ "$?" ==  0 ] && [ $USER_COUNT == 0 ]; then
+   echo "Initializing Database"
+   # Create an admin user
+   fabmanager create-admin --app superset --username admin --firstname admin --lastname admin --email admin@fab.org --password %(uiPassword)s
+   # Initialize the database
+   superset db upgrade
+   # Create default roles and permissions
+   export SUPERSET_UPDATE_PERMS=1
+   superset init
+   export SUPERSET_UPDATE_PERMS=0 
+   gunicorn superset:app
   else
-  export SUPERSET_UPDATE_PERMS=0
-  gunicorn superset:app
+   export SUPERSET_UPDATE_PERMS=0
+   gunicorn superset:app
   fi
  ||| % { uiPassword : containerSecrets.adminPassword, postgresUser : containerSecrets.databaseUser, postgresPassword : containerSecrets.databasePassword }, 
    
