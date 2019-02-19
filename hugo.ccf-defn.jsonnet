@@ -108,10 +108,10 @@ local oauth2_http_port = 4180;
        rm -r hugo_${HUGO_VERSION}_Linux-64bit.tar.gz && \
        mv hugo /usr/bin/hugo
 
-   RUN /root/.nvm/versions/node/v8.10.0/bin/npm install  leasot@next -g
+   RUN /root/.nvm/versions/node/v8.10.0/bin/npm install  leasot@latest -g
    RUN apt-get install git -y
    COPY ./generate-site.sh /generate-site.sh
-   RUN cd / && git clone https://%(github_id)s:%(github_access_token)s@%(github_repo)s src
+   RUN cd / && git clone --recursive https://%(github_id)s:%(github_access_token)s@%(github_repo)s src
    VOLUME /src
    WORKDIR /src
    RUN chmod +x /generate-site.sh
@@ -120,6 +120,7 @@ local oauth2_http_port = 4180;
    FROM nginx:alpine
    RUN rm -rf /usr/share/nginx/html/*
    COPY --from=builder /output /usr/share/nginx/html/output
+   COPY --from=builder /src/%(authorizedUsersFilePath)s /opt/oauth2-authorized-users.conf
    COPY default.conf /etc/nginx/conf.d/default.conf
    EXPOSE %(webServicePort)d
    RUN apk  update && apk add vim
@@ -132,7 +133,7 @@ local oauth2_http_port = 4180;
    RUN mv /opt/oauth2_proxy-2.2.0.linux-amd64.go1.8.1/oauth2_proxy /opt/oauth2_proxy
    COPY oauth2-proxy.sh /opt/oauth2-proxy.sh
    RUN chmod a+x /opt/oauth2-proxy.sh
-   COPY oauth2-authorized-users.conf /opt/oauth2-authorized-users.conf
+   
    COPY run.sh /root/run.sh
    RUN chmod a+x /root/run.sh
    CMD sh /root/run.sh
@@ -146,6 +147,7 @@ local oauth2_http_port = 4180;
                                 container_name: context.containerName,
                                 image: context.containerName + ':latest',
                                 networks: ['network'],
+                                restart: 'always',
                                 environment: {
                                         'HUGO_THEME': hugo.theme,
                                         'HUGO_BASEURL': hugo.baseurl,
