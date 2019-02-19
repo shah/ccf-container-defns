@@ -128,7 +128,7 @@ local oauth2_http_port = 4180;
    RUN apk add screen
    RUN apk add libc6-compat
    RUN apk add ca-certificates
-   RUN mkdir /opt && cd /opt && wget https://github.com/bitly/oauth2_proxy/releases/download/v2.2/oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
+   RUN cd /opt && wget https://github.com/bitly/oauth2_proxy/releases/download/v2.2/oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
    RUN cd /opt && tar -xvf oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
    RUN mv /opt/oauth2_proxy-2.2.0.linux-amd64.go1.8.1/oauth2_proxy /opt/oauth2_proxy
    COPY oauth2-proxy.sh /opt/oauth2-proxy.sh
