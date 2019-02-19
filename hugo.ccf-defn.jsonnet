@@ -133,7 +133,6 @@ local oauth2_http_port = 4180;
    RUN mv /opt/oauth2_proxy-2.2.0.linux-amd64.go1.8.1/oauth2_proxy /opt/oauth2_proxy
    COPY oauth2-proxy.sh /opt/oauth2-proxy.sh
    RUN chmod a+x /opt/oauth2-proxy.sh
-   
    COPY run.sh /root/run.sh
    RUN chmod a+x /root/run.sh
    CMD sh /root/run.sh
