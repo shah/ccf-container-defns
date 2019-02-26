@@ -92,7 +92,6 @@ local webServicePort = 80;
                                         'HUGO_BASEURL': hugo.baseUrl,
                                 },
                                 volumes: ['storage:/opt'],
-                                ports: ['80:' + webServicePort],
                                 labels: {
                                         'traefik.enable': 'true',
                                         'traefik.docker.network': common.defaultDockerNetworkName,
