@@ -57,7 +57,7 @@ local webServicePort = 80;
    RUN /root/.nvm/versions/node/v8.10.0/bin/npm install  leasot@latest -g
    RUN apt-get install git -y
    COPY ./generate-site.sh /generate-site.sh
-   RUN cd / && git clone https://%(gitHubId)s:%(gitHubAccessToken)s@%(hugoGitRepo)s src
+   RUN cd / && git clone --recursive  https://%(gitHubId)s:%(gitHubAccessToken)s@%(hugoGitRepo)s src
    VOLUME /src
    WORKDIR /src
    RUN chmod +x /generate-site.sh
