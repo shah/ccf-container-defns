@@ -15,7 +15,7 @@ local containerSecrets = import "hasura.secrets.ccf-conf.jsonnet";
 				ports: ['8085:8080'],
 				networks: ['network'],
                                 environment: [
-                                             'HASURA_GRAPHQL_DATABASE_URL=postgres://' + containerSecrets.databaseUser + ':' + containerSecrets.databasePassword + '@postgres:' + containerSecrets.databasePort + '/' + containerSecrets.databaseName,
+                                             'HASURA_GRAPHQL_DATABASE_URL=postgres://' + containerSecrets.databaseUser + ':' + containerSecrets.databasePassword + '@' + containerSecrets.databaseHost + ':' + containerSecrets.databasePort + '/' + containerSecrets.databaseName,
                                              'HASURA_GRAPHQL_ENABLE_CONSOLE=true'
                                 ],
 				labels: {
