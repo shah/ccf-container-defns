@@ -86,7 +86,7 @@ local lokiLogDirectory = '/var/log';
         limits_config: {
           enforce_metric_name: false,
         },
-	});
+	}),
 
 	"etc/promtail/promtail-docker-config.yml" : std.manifestYamlDoc({
         server: {
