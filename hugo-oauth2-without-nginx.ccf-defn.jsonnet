@@ -70,9 +70,9 @@ local webServicePort = 80;
    RUN apk add wget
    RUN apk add libc6-compat
    RUN apk add ca-certificates
-   RUN cd /opt && wget https://github.com/bitly/oauth2_proxy/releases/download/v2.2/oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
-   RUN cd /opt && tar -xvf oauth2_proxy-2.2.0.linux-amd64.go1.8.1.tar.gz
-   RUN mv /opt/oauth2_proxy-2.2.0.linux-amd64.go1.8.1/oauth2_proxy /bin/oauth2_proxy
+   RUN cd /opt && wget https://github.com/pusher/oauth2_proxy/releases/download/v3.1.0/oauth2_proxy-v3.1.0.linux-amd64.go1.11.tar.gz
+   RUN cd /opt && tar -xvf oauth2_proxy-v3.1.0.linux-amd64.go1.11.tar.gz
+   RUN mv /opt/release/oauth2_proxy-linux-amd64 /bin/oauth2_proxy
    CMD /bin/oauth2_proxy -upstream=file:///static/#/ -http-address=0.0.0.0:%(webServicePort)d  -authenticated-emails-file=/opt/oauth2-authorized-users.conf \
       -cookie-secure=%(oauth2CookieSecure)s -cookie-secret=%(oauth2CookieSecret)s -client-id=%(oauth2ClientId)s  -client-secret=%(oauth2ClientSecret)s \
       -provider=%(oauth2Provider)s
