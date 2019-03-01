@@ -47,71 +47,74 @@ local lokiLogDirectory = '/var/log';
 	}),
 
 	"etc/loki/loki-local-config.yml" : std.manifestYamlDoc({
-    	 auth_enabled: false,
-		 server: {
-		    http_listen_port: 3100,
-  		 },
-	     ingester: {
-	       lifecycler: {
-             address: '127.0.0.1',
-             ring: {
-               store: 'inmemory',
-               replication_factor: 1,
-             },
-           },
-         },
-         schema_config: {
-           configs: [
-             {
-               from: 0,
-               store: 'boltdb',
-               object_store: 'filesystem',
-               schema: 'v9',
-               index: {
-                prefix: 'index_',
-                period: '168h',
-             },
-           },
-          ],
-         },
-         storage_config: {
-           boltdb: {
-             directory: '/tmp/loki/index',
-           },
-           filesystem: {
-             directory: '/tmp/loki/chunks',
-           },
-         },
-	}),
-
-    "etc/promtail/promtail-docker-config.yml" : std.manifestYamlDoc({
-     server: {
-       http_listen_port: 0,
-       grpc_listen_port: 0,
-     },
-     positions: {
-       filename: '/tmp/positions.yaml',
-     },
-     client: {
-       url: 'http://loki:3100/api/prom/push',
-     },
-     scrape_configs: [
-        {
-          job_name: 'system',
-          entry_parser: 'raw',
-          static_configs: [
-          {
-            targets: [
-             'localhost',
-            ],
-            labels: {
-              job: 'varlogs',
-              __path__: '/var/log',
+        auth_enabled: false,
+        server: {
+          http_listen_port: 3100,
+        },
+        ingester: {
+          lifecycler: {
+            address: '127.0.0.1',
+            ring: {
+              store: 'inmemory',
+              replication_factor: 1,
             },
           },
-         ],
-       },
-    ],
-   }),
+          chunk_idle_period: '15m',
+        },
+        schema_config: {
+          configs: [
+            {
+              from: 0,
+              store: 'boltdb',
+              object_store: 'filesystem',
+              schema: 'v9',
+              index: {
+                prefix: 'index_',
+                period: '168h',
+              },
+            },
+          ],
+        },
+        storage_config: {
+          boltdb: {
+            directory: '/tmp/loki/index',
+          },
+          filesystem: {
+            directory: '/tmp/loki/chunks',
+          },
+        },
+        limits_config: {
+          enforce_metric_name: false,
+        },
+	});
 
+	"etc/promtail/promtail-docker-config.yml" : std.manifestYamlDoc({
+        server: {
+          http_listen_port: 9080,
+          grpc_listen_port: 0,
+        },
+        positions: {
+          filename: '/tmp/positions.yaml',
+        },
+        client: {
+          url: 'http://loki:3100/api/prom/push',
+        },
+        scrape_configs: [
+          {
+            job_name: 'system',
+            entry_parser: 'raw',
+            static_configs: [
+              {
+                targets: [
+                  'localhost',
+                ],
+                labels: {
+                  job: 'varlogs',
+                  __path__: '/var/log/',
+                },
+              },
+            ],
+          },
+        ],
+	}),
 }
