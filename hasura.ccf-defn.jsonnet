@@ -10,13 +10,14 @@ local containerSecrets = import "hasura.secrets.ccf-conf.jsonnet";
 		services: {
 			container: {
 				container_name: context.containerName,
-				image: 'hasura/graphql-engine:v1.0.0-alpha38',
+				image: 'hasura/graphql-engine',
 				restart: 'always',
 				ports: ['8085:8080'],
 				networks: ['network'],
                                 environment: [
                                              'HASURA_GRAPHQL_DATABASE_URL=postgres://' + containerSecrets.databaseUser + ':' + containerSecrets.databasePassword + '@' + containerSecrets.databaseHost + ':' + containerSecrets.databasePort + '/' + containerSecrets.databaseName,
-                                             'HASURA_GRAPHQL_ENABLE_CONSOLE=true'
+                                             'HASURA_GRAPHQL_ENABLE_CONSOLE=true',
+					     'HASURA_GRAPHQL_ADMIN_SECRET=' + containerSecrets.adminsecret
                                 ],
 				labels: {
 					'traefik.enable': 'true',
@@ -37,10 +38,5 @@ local containerSecrets = import "hasura.secrets.ccf-conf.jsonnet";
 			},
 		},
 
-		volumes: {
-			storage: {
-				name: context.containerName
-			},
-		},
 	})
 }
