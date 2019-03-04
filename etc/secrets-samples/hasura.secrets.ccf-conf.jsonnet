@@ -3,5 +3,6 @@
         databaseHost: "hostname",
 	databaseName: "databasename",
 	databaseUser: "postgres",
-	databasePassword: "xxxxxxxx"
+	databasePassword: "xxxxxxxx",
+	adminsecret: "xxxxxxxx"
 }
