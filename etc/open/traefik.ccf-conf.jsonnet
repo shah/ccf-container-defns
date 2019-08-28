@@ -1,0 +1,3 @@
+{ 
+rancherHost : "rancher.shah.com" 
+}
